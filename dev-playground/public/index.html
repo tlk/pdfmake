@@ -80,6 +80,7 @@
 
 		var timer;
 
+		// from http://stackoverflow.com/a/12094943/936466
 		function convertDataURIToBinary(dataURI) {
 			var BASE64_MARKER = ';base64,';
 			var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
@@ -94,6 +95,7 @@
 			return array;
 		}
 
+		// from https://raw.githubusercontent.com/mozilla/pdf.js/master/examples/helloworld/hello.js
 		function preview(data) {
 			PDFJS.getDocument(data).then(function (pdf) {
 				// Fetch the page.
