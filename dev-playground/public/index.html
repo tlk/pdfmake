@@ -44,8 +44,8 @@
 	</div>
 	<div class='content'>
 		<div id='editor'></div>
-		<iframe id='pdfV'></iframe>
-
+		<!-- <iframe id='pdfV'></iframe> -->
+		<canvas id="the-canvas" style="border:1px solid black"></canvas>
 	</div>
 </div>
 
@@ -80,7 +80,45 @@
 
 		var timer;
 
+		function convertDataURIToBinary(dataURI) {
+			var BASE64_MARKER = ';base64,';
+			var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
+			var base64 = dataURI.substring(base64Index);
+			var raw = window.atob(base64);
+			var rawLength = raw.length;
+			var array = new Uint8Array(new ArrayBuffer(rawLength));
+
+			for(var i = 0; i < rawLength; i++) {
+				array[i] = raw.charCodeAt(i);
+			}
+			return array;
+		}
+
+		function preview(data) {
+			PDFJS.getDocument(data).then(function (pdf) {
+				// Fetch the page.
+				pdf.getPage(1).then(function (page) {
+					var scale = 1.5;
+					var viewport = page.getViewport(scale);
+
+					// Prepare canvas using PDF page dimensions.
+					var canvas = document.getElementById('the-canvas');
+					var context = canvas.getContext('2d');
+					canvas.height = viewport.height;
+					canvas.width = viewport.width;
+
+					// Render PDF page into canvas context.
+					var renderContext = {
+						canvasContext: context,
+						viewport: viewport
+					};
+					page.render(renderContext);
+				});
+			});
+		}
+
 		function setupEditor() {
+			console.debug("setupEditor");
 			var lastGen, lastChanged;
 
 			editor.setTheme('ace/theme/monokai');
@@ -98,22 +136,26 @@
 					if (!lastGen || lastGen < lastChanged) {
 						generate();
 					};
-				}, 300);
+				}, 2000);
 			});
 
 			function generate() {
+				console.debug("generate");
 				lastGen = new Date();
 
 				eval(editor.getSession().getValue());
 
-				$http.post('/pdf', dd).
-					success(function(data, status, headers, config) {
-
-						document.getElementById('pdfV').src = data;
-					}).
-					error(function(data, status, headers, config) {
-						console.log('ERROR', data);
+				pdfMake.createPdf(dd).getDataUrl(function(pdfAsDataUri) {
+					console.debug("createPdf");
+					$scope.$apply(function() {
+						$scope.stats = 'generated in ' + (new Date().getTime() - lastGen.getTime()) + ' ms';
 					});
+
+					//document.getElementById('pdfV').src = outDoc;
+					var pdfAsArray = convertDataURIToBinary(pdfAsDataUri);
+					preview(pdfAsArray);
+				});
+
 			}
 		}
 	};
@@ -127,7 +169,13 @@
 <script type="text/javascript" src="playground.js"></script>
 
 <!--<script type="text/javascript" charset="utf-8" src='ace-builds/src-min/ace.js'></script>-->
+<!--<script type="text/javascript" charset="utf-8" src='pdfjs-dist/build/pdf.min.js'></script>-->
+<!--<script type="text/javascript" charset="utf-8" src='../build/pdfmake.min.js'></script>-->
+<!--<script type="text/javascript" charset="utf-8" src='../build/vfs_fonts.js'></script>-->
 <script type="text/javascript" charset="utf-8" src='ace.js'></script>
+<script type="text/javascript" charset="utf-8" src='pdf.js'></script>
+<script type="text/javascript" charset="utf-8" src='pdfmake.js'></script>
+<script type="text/javascript" charset="utf-8" src='vfs_fonts.js'></script>
 
 </body>
 </html>

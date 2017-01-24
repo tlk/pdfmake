@@ -118,6 +118,15 @@ h1 {
 	height: 100%;
 }
 
+#the-canvas {
+	position: absolute;
+	top: 0px;
+	left: 50%;
+	right: 0;
+	width: 50%;
+	height: 100%;
+}
+
 
 #stats {
 	display: none;
