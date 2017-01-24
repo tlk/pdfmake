@@ -3,6 +3,7 @@
 Start from pdfmake ROOT directory with nodemon if you want server to restart with every change you make in pdfmake/src:
 
 ```
+npm install
 cd dev-playground
 npm install # or: yarn
 npm install -g nodemon
